@@ -8,4 +8,12 @@
         <Colour>brown</Colour>
         <Type>Biomuell</Type>
     </GarbageCan>
+    <GarbageCan>
+        <Colour>black</Colour>
+        <Type>Restmuell</Type>
+    </GarbageCan>
+    <GarbageCan>
+        <Colour>blue</Colour>
+        <Type>Papiermuell</Type>
+    </GarbageCan>
 </GarbageCans>
