@@ -38,6 +38,16 @@ public class Kalender {
         String brownColourString = "brown";
         brownGarbageCan.setColour(brownColourString);
         brownGarbageCan.setType(Type.Biomuell);
+
+        GarbageCan blackGarbageCan = new GarbageCan();
+        String blackColourString = "black";
+        blackGarbageCan.setColour(blackColourString);
+        blackGarbageCan.setType(Type.Restmuell);
+
+        GarbageCan blueGarbageCan = new GarbageCan();
+        String blueColourString = "blue";
+        blueGarbageCan.setColour(blueColourString);
+        blueGarbageCan.setType(Type.Papiermuell);
         
         GarbageCanDay day_biomuell_1 = new GarbageCanDay(4, Month.MAI, 2024, brownGarbageCan);
 
@@ -52,6 +62,8 @@ public class Kalender {
             List<GarbageCan> garbageCans1 = new ArrayList<>();
             garbageCans1.add(yellowGarbageCan);
             garbageCans1.add(brownGarbageCan);
+            garbageCans1.add(blackGarbageCan);
+            garbageCans1.add(blueGarbageCan);
             GarbageCan.saveToXML(garbageCans1, "garbageCans.xml");
             
         } catch (Exception e) {
