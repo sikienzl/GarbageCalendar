@@ -1,0 +1,72 @@
+/*
+ * Copyright 2024 Siegfried Kienzle
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Kalender {
+    public static void main(String[] args) {
+        Holiday neujahr = new Holiday(1, Month.JANUAR, 2024, "Neujahr");
+        Holiday weihnachten = new Holiday(24, Month.DEZEMBER, 2024, "Heilig Abend");
+        Holiday silvester = new Holiday(31, Month.DEZEMBER, 2024, "Silvester");
+
+        System.out.println(neujahr);
+        System.out.println(weihnachten);
+        System.out.println(silvester);
+
+        GarbageCan yellowGarbageCan = new GarbageCan();
+        String yellowColourString = "yellow";
+        yellowGarbageCan.setColour(yellowColourString);
+        yellowGarbageCan.setType(Type.Plastikmuell);
+
+        GarbageCanDay day_plastikmuell_1 = new GarbageCanDay(2, Month.APRIL, 2024, yellowGarbageCan);
+        
+        GarbageCan brownGarbageCan = new GarbageCan();
+        String brownColourString = "brown";
+        brownGarbageCan.setColour(brownColourString);
+        brownGarbageCan.setType(Type.Biomuell);
+        
+        GarbageCanDay day_biomuell_1 = new GarbageCanDay(4, Month.MAI, 2024, brownGarbageCan);
+
+        System.out.println(day_plastikmuell_1);
+        System.out.println(day_biomuell_1);
+
+        Tui tui = new Tui();
+
+        tui.print_grid();
+
+        try {
+            List<GarbageCan> garbageCans1 = new ArrayList<>();
+            garbageCans1.add(yellowGarbageCan);
+            garbageCans1.add(brownGarbageCan);
+            GarbageCan.saveToXML(garbageCans1, "garbageCans.xml");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            List<GarbageCan> garbageCans = GarbageCan.loadFromXML("garbageCans.xml");
+            CalendarGUI gui = new CalendarGUI(garbageCans);
+            gui.setVisible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+   
+}
