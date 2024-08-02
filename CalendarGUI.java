@@ -156,8 +156,14 @@ public class CalendarGUI extends JFrame {
             Color color = reasonColorMap.get(reason);
             if (color != null) {
                 c.setBackground(color);
+                if (color.equals(Color.BLACK)) {
+                    c.setForeground(Color.WHITE); 
+                } else {
+                    c.setForeground(Color.BLACK); 
+                }
             } else {
                 c.setBackground(Color.WHITE);
+                c.setForeground(Color.BLACK);
             }
 
             return c;
