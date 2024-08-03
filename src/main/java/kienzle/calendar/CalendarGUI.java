@@ -1,4 +1,5 @@
 package kienzle.calendar;
+
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -18,8 +19,8 @@ package kienzle.calendar;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
 import kienzle.garbage.GarbageCan;
+import kienzle.type.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -29,8 +30,8 @@ import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Locale;
 
 public class CalendarGUI extends JFrame {
 
@@ -47,17 +48,12 @@ public class CalendarGUI extends JFrame {
             reasonColorMap.put(gc.getType().toString(), gc.getColorObject());
         }
 
-        // Setze den Titel des Fensters
         setTitle("Kalender 2024");
-
-        // Setze die Standardoperation beim Schließen
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
 
-        // Erstelle das Hauptpanel mit BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // Erstelle das Header-Panel mit den Pfeilen und dem Titel
         JPanel headerPanel = new JPanel(new BorderLayout());
         JButton prevButton = new JButton("<");
         JButton nextButton = new JButton(">");
@@ -69,11 +65,9 @@ public class CalendarGUI extends JFrame {
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Erstelle das Panel mit CardLayout für die Kalenderansichten
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // Erstelle die beiden Kalenderansichten
         JPanel firstHalfPanel = createCalendarPanel(1, 6);
         JPanel secondHalfPanel = createCalendarPanel(7, 12);
 
@@ -82,10 +76,8 @@ public class CalendarGUI extends JFrame {
 
         mainPanel.add(cardPanel, BorderLayout.CENTER);
 
-        // Füge das Hauptpanel zum Frame hinzu
         add(mainPanel);
 
-        // Füge ActionListener für die Buttons hinzu
         prevButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -126,7 +118,7 @@ public class CalendarGUI extends JFrame {
             };
 
             JTable table = new JTable(model);
-            table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(createReasonComboBox()));
+            table.getColumnModel().getColumn(2).setCellEditor(new ReasonCellEditor(this, getReasonTypes()));
             table.setDefaultRenderer(Object.class, new CustomTableCellRenderer());
 
             JScrollPane scrollPane = new JScrollPane(table);
@@ -143,12 +135,10 @@ public class CalendarGUI extends JFrame {
         return panel;
     }
 
-    private JComboBox<String> createReasonComboBox() {
-        JComboBox<String> comboBox = new JComboBox<>();
-        for (GarbageCan gc : garbageCans) {
-            comboBox.addItem(gc.getType().toString());
-        }
-        return comboBox;
+    private List<String> getReasonTypes() {
+        return garbageCans.stream()
+            .map(gc -> gc.getType().toString())
+            .toList();
     }
 
     private class CustomTableCellRenderer extends DefaultTableCellRenderer {
@@ -172,5 +162,17 @@ public class CalendarGUI extends JFrame {
 
             return c;
         }
+    }
+
+    public static void main(String[] args) {
+        List<GarbageCan> garbageCans = List.of(
+            new GarbageCan("yellow", GarbageType.Plastikmuell),
+            new GarbageCan("blue", GarbageType.Restmuell),
+            new GarbageCan("brown", GarbageType.Biomuell),
+            new GarbageCan("black", GarbageType.Restmuell)
+        );
+
+        CalendarGUI calendarGUI = new CalendarGUI(garbageCans);
+        calendarGUI.setVisible(true);
     }
 }

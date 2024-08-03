@@ -23,7 +23,7 @@ import kienzle.garbage.GarbageCanDay;
 import kienzle.holiday.Holiday;
 import kienzle.month.Month;
 import kienzle.tui.Tui;
-import kienzle.type.Type;
+import kienzle.type.*;
 
 public class Calendar {
     public static void main(String[] args) {
@@ -38,24 +38,24 @@ public class Calendar {
         GarbageCan yellowGarbageCan = new GarbageCan();
         String yellowColourString = "yellow";
         yellowGarbageCan.setColour(yellowColourString);
-        yellowGarbageCan.setType(Type.Plastikmuell);
+        yellowGarbageCan.setType(GarbageType.Plastikmuell);
 
         GarbageCanDay day_plastikmuell_1 = new GarbageCanDay(2, Month.APRIL, 2024, yellowGarbageCan);
         
         GarbageCan brownGarbageCan = new GarbageCan();
         String brownColourString = "brown";
         brownGarbageCan.setColour(brownColourString);
-        brownGarbageCan.setType(Type.Biomuell);
+        brownGarbageCan.setType(GarbageType.Biomuell);
 
         GarbageCan blackGarbageCan = new GarbageCan();
         String blackColourString = "black";
         blackGarbageCan.setColour(blackColourString);
-        blackGarbageCan.setType(Type.Restmuell);
+        blackGarbageCan.setType(GarbageType.Restmuell);
 
         GarbageCan blueGarbageCan = new GarbageCan();
         String blueColourString = "blue";
         blueGarbageCan.setColour(blueColourString);
-        blueGarbageCan.setType(Type.Papiermuell);
+        blueGarbageCan.setType(GarbageType.Papiermuell);
         
         GarbageCanDay day_biomuell_1 = new GarbageCanDay(4, Month.MAI, 2024, brownGarbageCan);
 

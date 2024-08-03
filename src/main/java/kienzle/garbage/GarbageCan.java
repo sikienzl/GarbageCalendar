@@ -1,4 +1,5 @@
 package kienzle.garbage;
+
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -16,9 +17,11 @@ package kienzle.garbage;
  */
 
 import java.awt.Color;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -28,19 +31,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import kienzle.type.Type;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import kienzle.type.*;
 
 public class GarbageCan {
     private String colour;
-    private Type type;
+    private GarbageType type;
 
     public GarbageCan() {}
 
-    public GarbageCan(String colour, Type type) {
+    public GarbageCan(String colour, GarbageType type) {
         this.colour = colour;
         this.type = type;
     }
@@ -53,11 +52,11 @@ public class GarbageCan {
         return this.colour;
     }
 
-    public void setType(Type type) {
+    public void setType(GarbageType type) {
         this.type = type;
     }
 
-    public Type getType() {
+    public GarbageType getType() {
         return type;
     }
 
@@ -73,11 +72,8 @@ public class GarbageCan {
                 case "black":
                     return Color.BLACK;
                 default:
-                    return null; // Farbe nicht gefunden
+                    return Color.WHITE; // Standardfarbe, wenn die Farbe ungültig ist
             }
-
-
-            //return Color.decode(this.colour);
         } catch (NumberFormatException e) {
             return Color.WHITE; // Standardfarbe, wenn die Farbe ungültig ist
         }
@@ -131,7 +127,7 @@ public class GarbageCan {
             Element element = (Element) nList.item(i);
 
             String colour = element.getElementsByTagName("Colour").item(0).getTextContent();
-            Type type = Type.valueOf(element.getElementsByTagName("Type").item(0).getTextContent());
+            GarbageType type = GarbageType.valueOf(element.getElementsByTagName("Type").item(0).getTextContent());
 
             garbageCans.add(new GarbageCan(colour, type));
         }

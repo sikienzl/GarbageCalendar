@@ -15,6 +15,6 @@ package kienzle.type;
  * limitations under the License.
  */
 
-public enum Type {
+public enum GarbageType {
     Restmuell, Papiermuell, Biomuell, Plastikmuell;
 }
