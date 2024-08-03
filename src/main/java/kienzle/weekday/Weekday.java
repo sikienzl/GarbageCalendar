@@ -1,3 +1,4 @@
+package kienzle.weekday;
 /*
  * Copyright 2024 Siegfried Kienzle
  *

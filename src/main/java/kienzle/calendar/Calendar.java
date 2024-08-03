@@ -1,3 +1,4 @@
+package kienzle.calendar;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -17,7 +18,14 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Kalender {
+import kienzle.garbage.GarbageCan;
+import kienzle.garbage.GarbageCanDay;
+import kienzle.holiday.Holiday;
+import kienzle.month.Month;
+import kienzle.tui.Tui;
+import kienzle.type.Type;
+
+public class Calendar {
     public static void main(String[] args) {
         Holiday neujahr = new Holiday(1, Month.JANUAR, 2024, "Neujahr");
         Holiday weihnachten = new Holiday(24, Month.DEZEMBER, 2024, "Heilig Abend");

@@ -1,3 +1,4 @@
+package kienzle.garbage;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -26,6 +27,8 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import kienzle.type.Type;
 
 import java.io.File;
 import java.util.ArrayList;

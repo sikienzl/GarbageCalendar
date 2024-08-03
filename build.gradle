@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.kienzle'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+     
+}
+
+application {
+    mainClass = 'kienzle.calendar.Calendar'
+}

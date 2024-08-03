@@ -1,3 +1,4 @@
+package kienzle.day;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -17,6 +18,9 @@
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+import kienzle.month.Month;
+import kienzle.weekday.Weekday;
 
 public class Day {
     private int day;

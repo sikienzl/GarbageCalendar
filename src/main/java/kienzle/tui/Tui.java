@@ -1,3 +1,4 @@
+package kienzle.tui;
 /*
  * Copyright 2024 Siegfried Kienzle
  *

@@ -1,3 +1,4 @@
+package kienzle.garbage;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -16,33 +17,23 @@
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.Locale;
 
-public class Holiday extends Day {
+import kienzle.day.Day;
+import kienzle.month.Month;
+
+public class GarbageCanDay extends Day {
+    private GarbageCan garbageCan;
     
-    private String name;
-
-    public Holiday(int day, Month month, int year, String name) {
+    public GarbageCanDay(int day, Month month, int year, GarbageCan garbageCan) {
         super(day, month, year);
-        this.name = name;
-    }
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        this.garbageCan = garbageCan;
     }
 
     @Override
     public String toString() {
         LocalDate date = LocalDate.of(super.getYear(), super.geMonth().ordinal() + 1, super.getDay());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        return name + " am " + date.format(formatter)
+        return garbageCan.getType() + " (" + garbageCan.getColour() + ") am " + date.format(formatter)
                 + " (" + getWeekday(super.getYear(), super.geMonth().ordinal() + 1, super.getDay()).getShoString() + ")";
     }
-    
 }

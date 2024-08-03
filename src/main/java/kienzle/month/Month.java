@@ -1,3 +1,4 @@
+package kienzle.month;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -14,6 +15,7 @@
  * limitations under the License.
  */
 
-public enum Type {
-    Restmuell, Papiermuell, Biomuell, Plastikmuell;
+public enum Month {
+    JANUAR, FEBRUAR, MAERZ, APRIL, MAI, JUNI,
+    JULI, AUGUST, SEPTEMBER, OKTOBER, NOVEMBER, DEZEMBER;
 }

@@ -1,3 +1,4 @@
+package kienzle.calendar;
 /*
  * Copyright 2024 Siegfried Kienzle
  *
@@ -17,6 +18,9 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import kienzle.garbage.GarbageCan;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
