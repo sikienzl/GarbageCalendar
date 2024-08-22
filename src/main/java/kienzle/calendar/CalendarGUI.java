@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.YearMonth;
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.List;
@@ -39,16 +40,18 @@ public class CalendarGUI extends JFrame {
     private JPanel cardPanel;
     private List<GarbageCan> garbageCans;
     private Map<String, Color> reasonColorMap;
+    private JComboBox<Integer> yearComboBox;
+    private JLabel titleLabel;
 
     public CalendarGUI(List<GarbageCan> garbageCans) {
-        super("Kalender 2024");
+        super("Kalender");
         this.garbageCans = garbageCans;
         reasonColorMap = new HashMap<>();
         for (GarbageCan gc : garbageCans) {
             reasonColorMap.put(gc.getType().toString(), gc.getColorObject());
         }
 
-        setTitle("Kalender 2024");
+        setTitle("Kalender");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
 
@@ -57,10 +60,18 @@ public class CalendarGUI extends JFrame {
         JPanel headerPanel = new JPanel(new BorderLayout());
         JButton prevButton = new JButton("<");
         JButton nextButton = new JButton(">");
-        JLabel titleLabel = new JLabel("Kalender 2024", SwingConstants.CENTER);
+        titleLabel = new JLabel("Kalender", SwingConstants.CENTER);
+
+        yearComboBox = new JComboBox<>();
+        fillYearComboBox(); // Methode zum Füllen der Jahre
+        yearComboBox.addActionListener(new YearSelectionListener());
+
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        titlePanel.add(titleLabel);
+        titlePanel.add(yearComboBox);
 
         headerPanel.add(prevButton, BorderLayout.WEST);
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        headerPanel.add(titlePanel, BorderLayout.CENTER);
         headerPanel.add(nextButton, BorderLayout.EAST);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -68,11 +79,7 @@ public class CalendarGUI extends JFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        JPanel firstHalfPanel = createCalendarPanel(1, 6);
-        JPanel secondHalfPanel = createCalendarPanel(7, 12);
-
-        cardPanel.add(firstHalfPanel, "FirstHalf");
-        cardPanel.add(secondHalfPanel, "SecondHalf");
+        updateCalendarPanel(); // Kalenderpanel zum ersten Mal erstellen
 
         mainPanel.add(cardPanel, BorderLayout.CENTER);
 
@@ -93,13 +100,37 @@ public class CalendarGUI extends JFrame {
         });
     }
 
-    private JPanel createCalendarPanel(int startMonth, int endMonth) {
+    private void fillYearComboBox() {
+        int currentYear = Year.now().getValue();
+        for (int i = currentYear; i <= currentYear + 999; i++) {
+            yearComboBox.addItem(i);
+        }
+        yearComboBox.setSelectedItem(currentYear); // Das aktuelle Jahr als Standardwert setzen
+    }
+
+    private void updateCalendarPanel() {
+        cardPanel.removeAll();
+        int selectedYear = (int) yearComboBox.getSelectedItem();
+
+        titleLabel.setText("Kalender"); // Aktualisiere den Titel
+
+        JPanel firstHalfPanel = createCalendarPanel(selectedYear, 1, 6);
+        JPanel secondHalfPanel = createCalendarPanel(selectedYear, 7, 12);
+
+        cardPanel.add(firstHalfPanel, "FirstHalf");
+        cardPanel.add(secondHalfPanel, "SecondHalf");
+
+        cardPanel.revalidate();
+        cardPanel.repaint();
+    }
+
+    private JPanel createCalendarPanel(int year, int startMonth, int endMonth) {
         JPanel panel = new JPanel(new GridLayout(1, 6)); // 1 Zeile, 6 Spalten
 
         String[] columnNames = {"Tag", "Wochentag", "Reason"};
 
         for (int month = startMonth; month <= endMonth; month++) {
-            YearMonth yearMonth = YearMonth.of(2024, month);
+            YearMonth yearMonth = YearMonth.of(year, month);
             int daysInMonth = yearMonth.lengthOfMonth();
             Object[][] data = new Object[daysInMonth][3];
 
@@ -161,6 +192,13 @@ public class CalendarGUI extends JFrame {
             }
 
             return c;
+        }
+    }
+
+    private class YearSelectionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            updateCalendarPanel();
         }
     }
 
