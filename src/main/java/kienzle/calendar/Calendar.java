@@ -67,24 +67,19 @@ public class Calendar {
         tui.print_grid();
 
         try {
-            List<GarbageCan> garbageCans1 = new ArrayList<>();
-            garbageCans1.add(yellowGarbageCan);
-            garbageCans1.add(brownGarbageCan);
-            garbageCans1.add(blackGarbageCan);
-            garbageCans1.add(blueGarbageCan);
-            GarbageCan.saveToXML(garbageCans1, "garbageCans.xml");
+            List<GarbageCan> garbageCans = new ArrayList<>();
+            garbageCans.add(yellowGarbageCan);
+            garbageCans.add(brownGarbageCan);
+            garbageCans.add(blackGarbageCan);
+            garbageCans.add(blueGarbageCan);
+            GarbageCan.saveToXML(garbageCans, "garbageCans.xml");
+            CalendarGUI calendarGUI = new CalendarGUI(garbageCans);
+        calendarGUI.setVisible(true);
             
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        try {
-            List<GarbageCan> garbageCans = GarbageCan.loadFromXML("garbageCans.xml");
-            CalendarGUI gui = new CalendarGUI(garbageCans);
-            gui.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        
 
     }
 

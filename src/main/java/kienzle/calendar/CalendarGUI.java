@@ -230,15 +230,4 @@ public class CalendarGUI extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        List<GarbageCan> garbageCans = List.of(
-            new GarbageCan("yellow", GarbageType.Plastikmuell),
-            new GarbageCan("blue", GarbageType.Restmuell),
-            new GarbageCan("brown", GarbageType.Biomuell),
-            new GarbageCan("black", GarbageType.Restmuell)
-        );
-
-        CalendarGUI calendarGUI = new CalendarGUI(garbageCans);
-        calendarGUI.setVisible(true);
-    }
 }
