@@ -28,7 +28,6 @@ public class ReasonSelectionDialog extends JDialog {
     private List<JCheckBox> checkBoxes;
     private List<String> selectedReasons;
     private JCheckBox jCheckBoxHoliday;
-    private JLabel jLabelHoliday;
     private JTextField jTextFieldHoliday;
 
     public ReasonSelectionDialog(Frame owner, List<String> reasons) {
@@ -40,8 +39,7 @@ public class ReasonSelectionDialog extends JDialog {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(reasons.size() + 3, 1));
 
-        jCheckBoxHoliday = new JCheckBox("Feiertag?");
-        jLabelHoliday = new JLabel("Feiertag: ");
+        jCheckBoxHoliday = new JCheckBox("Feiertag:");
         jTextFieldHoliday = new JTextField();
 
         for (String reason : reasons) {
@@ -64,7 +62,6 @@ public class ReasonSelectionDialog extends JDialog {
         });
 
         panel.add(jCheckBoxHoliday);
-        panel.add(jLabelHoliday);
         panel.add(jTextFieldHoliday);
 
         JButton okButton = new JButton("OK");
@@ -113,7 +110,6 @@ public class ReasonSelectionDialog extends JDialog {
     private void updateHolidayComponents() {
         boolean anySelected = checkBoxes.stream().anyMatch(JCheckBox::isSelected);
         jCheckBoxHoliday.setEnabled(!anySelected);
-        jLabelHoliday.setEnabled(!anySelected && jCheckBoxHoliday.isEnabled());
         jTextFieldHoliday.setEnabled(!anySelected && jCheckBoxHoliday.isEnabled());
     }
 
