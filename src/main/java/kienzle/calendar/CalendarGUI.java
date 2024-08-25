@@ -16,23 +16,27 @@ package kienzle.calendar;
  * limitations under the License.
  */
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import kienzle.garbage.GarbageCan;
-import kienzle.type.*;
+import kienzle.holiday.Holiday;
+import kienzle.month.Month;
+import kienzle.type.GarbageType;
+import kienzle.calendar.CustomTableCellRenderer;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.YearMonth;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.Year;
+import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 
 public class CalendarGUI extends JFrame {
 
@@ -42,6 +46,9 @@ public class CalendarGUI extends JFrame {
     private Map<String, Color> reasonColorMap;
     private JComboBox<Integer> yearComboBox;
     private JLabel titleLabel;
+    private JTable table;
+    private JLabel monthLabel;
+    private Map<Integer, Holiday> holidaysMap = new HashMap<>();
 
     public CalendarGUI(List<GarbageCan> garbageCans) {
         super("Kalender");
@@ -102,7 +109,7 @@ public class CalendarGUI extends JFrame {
 
     private void fillYearComboBox() {
         int currentYear = Year.now().getValue();
-        for (int i = currentYear; i <= currentYear + 999; i++) {
+        for (int i = currentYear; i <= currentYear + 10; i++) {
             yearComboBox.addItem(i);
         }
         yearComboBox.setSelectedItem(currentYear); // Das aktuelle Jahr als Standardwert setzen
@@ -144,19 +151,39 @@ public class CalendarGUI extends JFrame {
             DefaultTableModel model = new DefaultTableModel(data, columnNames) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 2; // Nur die "Reason"-Spalte ist editierbar
+                    return column == 2 && !holidaysMap.containsKey(row); // Nur die "Reason"-Spalte ist editierbar und nur wenn es kein Feiertag ist
                 }
             };
 
-            JTable table = new JTable(model);
+            table = new JTable(model);
             table.getColumnModel().getColumn(2).setCellEditor(new ReasonCellEditor(this, getReasonTypes()));
-            table.setDefaultRenderer(Object.class, new CustomTableCellRenderer());
+            table.setDefaultRenderer(Object.class, new CustomTableCellRenderer(holidaysMap, reasonColorMap));
+
+            // Kontextmenü für Feiertage
+            JPopupMenu popupMenu = new JPopupMenu();
+            JMenuItem holidayItem = new JMenuItem("Als Feiertag markieren");
+            popupMenu.add(holidayItem);
+
+            table.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (SwingUtilities.isRightMouseButton(e) && table.isShowing()) {
+                        int row = table.rowAtPoint(e.getPoint());
+                        int column = table.columnAtPoint(e.getPoint());
+                        table.setRowSelectionInterval(row, row);
+                        table.setColumnSelectionInterval(column, column);
+                        popupMenu.show(table, e.getX(), e.getY());
+                    }
+                }
+            });
+
+            holidayItem.addActionListener(e -> markAsHoliday(table.getSelectedRow(), year));
 
             JScrollPane scrollPane = new JScrollPane(table);
             JPanel tablePanel = new JPanel(new BorderLayout());
             tablePanel.add(scrollPane, BorderLayout.CENTER);
 
-            JLabel monthLabel = new JLabel(yearMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.GERMAN), SwingConstants.CENTER);
+            monthLabel = new JLabel(yearMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.GERMAN), SwingConstants.CENTER);
             monthLabel.setFont(new Font("Arial", Font.BOLD, 16));
             tablePanel.add(monthLabel, BorderLayout.NORTH);
 
@@ -172,27 +199,28 @@ public class CalendarGUI extends JFrame {
             .toList();
     }
 
-    private class CustomTableCellRenderer extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    private void markAsHoliday(int row, int year) {
+        String holidayName = JOptionPane.showInputDialog(this, "Name des Feiertags:");
+        if (holidayName != null && !holidayName.trim().isEmpty()) {
+            int day = (int) table.getValueAt(row, 0);
+            String monthName = monthLabel.getText();
+            Month month = Month.valueOf(monthName.toUpperCase(Locale.GERMAN));
 
-            String reason = (String) table.getValueAt(row, 2); // Grund in der "Reason"-Spalte
-            Color color = reasonColorMap.get(reason);
-            if (color != null) {
-                c.setBackground(color);
-                if (color.equals(Color.BLACK)) {
-                    c.setForeground(Color.WHITE); 
-                } else {
-                    c.setForeground(Color.BLACK); 
-                }
-            } else {
-                c.setBackground(Color.WHITE);
-                c.setForeground(Color.BLACK);
-            }
+            Holiday holiday = new Holiday(day, month, year, holidayName);
+            holidaysMap.put(row, holiday);
 
-            return c;
+            table.setValueAt(holiday.toString(), row, 2);
+            ((DefaultTableModel) table.getModel()).fireTableRowsUpdated(row, row);
+
+            setHolidayRowReadOnly(row);
         }
+    }
+
+    private void setHolidayRowReadOnly(int row) {
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            table.getCellRenderer(row, column).getTableCellRendererComponent(table, null, false, false, row, column).setBackground(Color.LIGHT_GRAY);
+        }
+        table.setDefaultEditor(Object.class, null); // Macht die Zellen schreibgeschützt
     }
 
     private class YearSelectionListener implements ActionListener {
