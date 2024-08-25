@@ -18,6 +18,9 @@ package kienzle.calendar;
 
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
+
+import kienzle.weekday.Weekday;
+
 import java.awt.*;
 import java.util.List;
 
@@ -26,6 +29,7 @@ public class ReasonCellEditor extends AbstractCellEditor implements TableCellEdi
     private JFrame parentFrame;
     private List<String> reasons;
     private String selectedReasons;
+    private boolean isSunday;
 
     public ReasonCellEditor(JFrame parentFrame, List<String> reasons) {
         this.parentFrame = parentFrame;
@@ -47,9 +51,22 @@ public class ReasonCellEditor extends AbstractCellEditor implements TableCellEdi
         }
 
         JButton button = new JButton("Select Reasons");
+
+        //boolean isSunday = ((LocalDate) table.getValueAt(row, 0)).getDayOfWeek().equals(DayOfWeek.SUNDAY);
+
+        Object day = table.getValueAt(row, 1);
+
+        String strDay = day.toString();
+
+        isSunday = false;
+        if(strDay.equals(Weekday.SO.getShoString()+".")) {
+            isSunday = true;
+        }
+
+
         button.addActionListener(e -> {
             // Erzeugt den Dialog und wartet auf die Benutzeraktion
-            ReasonSelectionDialog dialog = new ReasonSelectionDialog(parentFrame, reasons);
+            ReasonSelectionDialog dialog = new ReasonSelectionDialog(parentFrame, reasons, isSunday);
             dialog.setVisible(true);
 
             // Überprüft, ob Benutzer eine Auswahl getroffen hat

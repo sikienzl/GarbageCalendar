@@ -29,9 +29,11 @@ public class ReasonSelectionDialog extends JDialog {
     private List<String> selectedReasons;
     private JCheckBox jCheckBoxHoliday;
     private JTextField jTextFieldHoliday;
+    private boolean isSunday;
 
-    public ReasonSelectionDialog(Frame owner, List<String> reasons) {
+    public ReasonSelectionDialog(Frame owner, List<String> reasons, boolean isSunday) {
         super(owner, "Select Reasons", true);
+        this.isSunday = isSunday; // Setze den Wochentagstatus
 
         checkBoxes = new ArrayList<>();
         selectedReasons = new ArrayList<>();
@@ -41,6 +43,7 @@ public class ReasonSelectionDialog extends JDialog {
 
         jCheckBoxHoliday = new JCheckBox("Feiertag:");
         jTextFieldHoliday = new JTextField();
+        jTextFieldHoliday.setEnabled(false);
 
         for (String reason : reasons) {
             JCheckBox checkBox = new JCheckBox(reason);
@@ -71,6 +74,7 @@ public class ReasonSelectionDialog extends JDialog {
                 selectedReasons.clear();
                 if (jCheckBoxHoliday.isSelected()) {
                     if (!jTextFieldHoliday.getText().trim().isEmpty()) {
+                        
                         selectedReasons.add(jTextFieldHoliday.getText().trim());
                     }
                 } else {
@@ -103,14 +107,17 @@ public class ReasonSelectionDialog extends JDialog {
         setSize(300, 300);
         setLocationRelativeTo(owner);
 
-        // Initialize components state
+        // Initialisiere die Komponentenzustände
         updateHolidayComponents();
+        if (isSunday) {
+            disableCheckBoxes();
+        }
     }
 
     private void updateHolidayComponents() {
         boolean anySelected = checkBoxes.stream().anyMatch(JCheckBox::isSelected);
         jCheckBoxHoliday.setEnabled(!anySelected);
-        jTextFieldHoliday.setEnabled(!anySelected && jCheckBoxHoliday.isEnabled());
+        jTextFieldHoliday.setEnabled(jCheckBoxHoliday.isSelected());
     }
 
     private void updateCheckBoxComponents() {
@@ -119,6 +126,14 @@ public class ReasonSelectionDialog extends JDialog {
             checkBox.setEnabled(!holidaySelected);
         }
         updateHolidayComponents();
+    }
+
+    private void disableCheckBoxes() {
+        for (JCheckBox checkBox : checkBoxes) {
+            checkBox.setVisible(false);
+        }
+        /*jCheckBoxHoliday.setVisible(false);
+        jTextFieldHoliday.setEnabled(false);*/
     }
 
     public List<String> getSelectedReasons() {
