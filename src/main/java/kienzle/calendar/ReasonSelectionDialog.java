@@ -33,7 +33,7 @@ public class ReasonSelectionDialog extends JDialog {
 
     public ReasonSelectionDialog(Frame owner, List<String> reasons, boolean isSunday) {
         super(owner, "Select Reasons", true);
-        this.isSunday = isSunday; // Setze den Wochentagstatus
+        this.isSunday = isSunday; 
 
         checkBoxes = new ArrayList<>();
         selectedReasons = new ArrayList<>();
@@ -107,7 +107,6 @@ public class ReasonSelectionDialog extends JDialog {
         setSize(300, 300);
         setLocationRelativeTo(owner);
 
-        // Initialisiere die Komponentenzustände
         updateHolidayComponents();
         if (isSunday) {
             disableCheckBoxes();
@@ -132,8 +131,6 @@ public class ReasonSelectionDialog extends JDialog {
         for (JCheckBox checkBox : checkBoxes) {
             checkBox.setVisible(false);
         }
-        /*jCheckBoxHoliday.setVisible(false);
-        jTextFieldHoliday.setEnabled(false);*/
     }
 
     public List<String> getSelectedReasons() {

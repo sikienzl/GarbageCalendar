@@ -38,45 +38,43 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-        // Prüfen, ob der aktuelle Tag ein Sonntag ist
         String dayOfWeek = (String) table.getValueAt(row, 1);
         boolean isSunday = "So.".equals(dayOfWeek);
 
-        // Prüfen, ob es einen Feiertag in der Zeile gibt
         boolean isHoliday = holidaysMap.containsKey(row);
 
-        // Abrufen des Grundes aus der entsprechenden Zelle
         String reason = (String) table.getValueAt(row, 2);
 
-        // Standard-Hintergrund- und Textfarben setzen
         c.setBackground(Color.WHITE);
         c.setForeground(Color.BLACK);
 
-        // Feiertag oder Sonntag - Setze die gesamte Zeile auf Grau
         if (isHoliday || isSunday) {
             c.setBackground(Color.LIGHT_GRAY);
         } else {
-            // Prüfen, ob der Grund eine spezielle Farbe hat
             Color reasonColor = reasonColorMap.get(reason);
             if (reasonColor != null) {
                 c.setBackground(reasonColor);
                 c.setForeground(reasonColor.equals(Color.BLACK) ? Color.WHITE : Color.BLACK);
             }
 
-            // Prüfen, ob der Grund ein gültiger Mülltyp ist
-            if (reason != null && !reason.trim().isEmpty() && 
-                !isGarbageType(reason)) {
-                System.out.print(reason);
-                c.setBackground(Color.LIGHT_GRAY); // Setzt die Hintergrundfarbe auf Grau
+            if (reason != null && !reason.trim().isEmpty() && !isGarbageType(reason)) {
+                c.setBackground(Color.LIGHT_GRAY); 
+            }
+
+            if (column == 2 && value instanceof String) {
+                ((JLabel) c).setText("<html>" + reason.replaceAll("\n", "<br/>") + "</html>");
+                
+                int width = table.getColumnModel().getColumn(column).getWidth();
+                int prefHeight = (int) c.getPreferredSize().getHeight();
+                table.setRowHeight(row, prefHeight);
             }
         }
 
         return c;
     }
 
-    // Prüfen, ob der Grund ein gültiger Mülltyp ist
     private boolean isGarbageType(String reason) {
-       for (GarbageType type : GarbageType.values()) {
+        for (GarbageType type : GarbageType.values()) {
             if (type.toString().equals(reason)) {
                 return true;
             }
