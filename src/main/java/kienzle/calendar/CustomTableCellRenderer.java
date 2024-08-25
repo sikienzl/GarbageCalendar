@@ -16,6 +16,7 @@ package kienzle.calendar;
  * limitations under the License.
  */
 
+import kienzle.type.GarbageType;
 import kienzle.holiday.Holiday;
 
 import javax.swing.*;
@@ -39,23 +40,47 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
         // Prüfen, ob der aktuelle Tag ein Sonntag ist
         String dayOfWeek = (String) table.getValueAt(row, 1);
-        boolean isSunday = "So.".equals(dayOfWeek); // "So." ist die Kurzform für Sonntag im Deutschen
+        boolean isSunday = "So.".equals(dayOfWeek);
 
-        if (holidaysMap.containsKey(row) || isSunday) {
+        // Prüfen, ob es einen Feiertag in der Zeile gibt
+        boolean isHoliday = holidaysMap.containsKey(row);
+
+        // Abrufen des Grundes aus der entsprechenden Zelle
+        String reason = (String) table.getValueAt(row, 2);
+
+        // Standard-Hintergrund- und Textfarben setzen
+        c.setBackground(Color.WHITE);
+        c.setForeground(Color.BLACK);
+
+        // Feiertag oder Sonntag - Setze die gesamte Zeile auf Grau
+        if (isHoliday || isSunday) {
             c.setBackground(Color.LIGHT_GRAY);
-            c.setForeground(Color.BLACK);
         } else {
-            String reason = (String) table.getValueAt(row, 2);
-            Color color = reasonColorMap.get(reason);
-            if (color != null) {
-                c.setBackground(color);
-                c.setForeground(color.equals(Color.BLACK) ? Color.WHITE : Color.BLACK);
-            } else {
-                c.setBackground(Color.WHITE);
-                c.setForeground(Color.BLACK);
+            // Prüfen, ob der Grund eine spezielle Farbe hat
+            Color reasonColor = reasonColorMap.get(reason);
+            if (reasonColor != null) {
+                c.setBackground(reasonColor);
+                c.setForeground(reasonColor.equals(Color.BLACK) ? Color.WHITE : Color.BLACK);
+            }
+
+            // Prüfen, ob der Grund ein gültiger Mülltyp ist
+            if (reason != null && !reason.trim().isEmpty() && 
+                !isGarbageType(reason)) {
+                System.out.print(reason);
+                c.setBackground(Color.LIGHT_GRAY); // Setzt die Hintergrundfarbe auf Grau
             }
         }
 
         return c;
+    }
+
+    // Prüfen, ob der Grund ein gültiger Mülltyp ist
+    private boolean isGarbageType(String reason) {
+       for (GarbageType type : GarbageType.values()) {
+            if (type.toString().equals(reason)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
