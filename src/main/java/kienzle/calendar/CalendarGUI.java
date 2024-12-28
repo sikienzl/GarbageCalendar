@@ -23,20 +23,21 @@ import kienzle.type.GarbageType;
 import kienzle.calendar.CustomTableCellRenderer;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class CalendarGUI extends JFrame {
 
@@ -49,6 +50,8 @@ public class CalendarGUI extends JFrame {
     private JTable table;
     private JLabel monthLabel;
     private Map<Integer, Holiday> holidaysMap = new HashMap<>();
+    private Map<YearMonth, List<String>> calendarData = new HashMap<>();
+
 
     public CalendarGUI(List<GarbageCan> garbageCans) {
         super("Kalender");
@@ -77,8 +80,39 @@ public class CalendarGUI extends JFrame {
         titlePanel.add(titleLabel);
         titlePanel.add(yearComboBox);
 
+        JButton exportButton = new JButton("PDF Exportieren");
+        exportButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Speichern als PDF");
+
+            // Nur PDF-Dateien zulassen
+            FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF-Dateien (*.pdf)", "pdf");
+            fileChooser.setFileFilter(pdfFilter);
+
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+
+                // Sicherstellen, dass die Datei die Endung ".pdf" hat
+                if (!selectedFile.getName().toLowerCase().endsWith(".pdf")) {
+                    selectedFile = new File(selectedFile.getAbsolutePath() + ".pdf");
+                }
+
+                try {
+                    CalendarPDFGenerator pdfGenerator = new CalendarPDFGenerator();
+                    pdfGenerator.generatePDF(selectedFile, (int) yearComboBox.getSelectedItem(), calendarData, holidaysMap);
+                    JOptionPane.showMessageDialog(this, "PDF erfolgreich gespeichert!", "Erfolg", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Fehler beim Speichern der PDF: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+
+
+
         headerPanel.add(prevButton, BorderLayout.WEST);
         headerPanel.add(titlePanel, BorderLayout.CENTER);
+        headerPanel.add(exportButton, BorderLayout.SOUTH);
         headerPanel.add(nextButton, BorderLayout.EAST);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -130,11 +164,10 @@ public class CalendarGUI extends JFrame {
         cardPanel.revalidate();
         cardPanel.repaint();
     }
-
     private JPanel createCalendarPanel(int year, int startMonth, int endMonth) {
-        JPanel panel = new JPanel(new GridLayout(1, 6)); // 1 Zeile, 6 Spalten
+        JPanel panel = new JPanel(new GridLayout(1, endMonth - startMonth + 1)); // Eine Zeile, eine Spalte pro Monat
 
-        String[] columnNames = {"Tag", "Wochentag", "Reason"};
+        String[] columnNames = {"Tag", "Wochentag", "Grund"};
 
         for (int month = startMonth; month <= endMonth; month++) {
             YearMonth yearMonth = YearMonth.of(year, month);
@@ -143,15 +176,43 @@ public class CalendarGUI extends JFrame {
 
             for (int day = 1; day <= daysInMonth; day++) {
                 LocalDate date = yearMonth.atDay(day);
-                data[day - 1][0] = date.getDayOfMonth();
-                data[day - 1][1] = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.GERMAN);
-                data[day - 1][2] = ""; // Platzhalter für Grund
+                data[day - 1][0] = date.getDayOfMonth(); // Tag (Nummer)
+                data[day - 1][1] = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.GERMAN); // Wochentag (Text)
+
+                // Grund (Feiertag oder Müllabfuhr)
+                List<String> reasons = calendarData.get(yearMonth);
+                if (reasons != null && reasons.size() > day - 1) {
+                    data[day - 1][2] = reasons.get(day - 1);
+                } else {
+                    Holiday holiday = holidaysMap.get(day);
+                    if (holiday != null) {
+                        data[day - 1][2] = holiday.getName();
+                    } else {
+                        data[day - 1][2] = ""; // Platzhalter für Grund
+                    }
+                }
             }
 
             DefaultTableModel model = new DefaultTableModel(data, columnNames) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 2 && !holidaysMap.containsKey(row); // Nur die "Reason"-Spalte ist editierbar und nur wenn es kein Feiertag ist
+                    // Nur die "Grund"-Spalte ist editierbar und nur, wenn es kein Feiertag ist
+                    return column == 2 && !holidaysMap.containsKey(row + 1);
+                }
+
+                @Override
+                public void setValueAt(Object value, int row, int column) {
+                    super.setValueAt(value, row, column);
+                    if (column == 2) {
+                        // Speichere den geänderten Wert in der zentralen Datenstruktur
+                        YearMonth currentMonth = YearMonth.of(year, startMonth);
+                        calendarData.computeIfAbsent(currentMonth, k -> new ArrayList<>());
+                        List<String> reasons = calendarData.get(currentMonth);
+                        while (reasons.size() <= row) {
+                            reasons.add("");
+                        }
+                        reasons.set(row, value != null ? value.toString() : "");
+                    }
                 }
             };
 
@@ -159,7 +220,6 @@ public class CalendarGUI extends JFrame {
             table.getColumnModel().getColumn(2).setCellEditor(new ReasonCellEditor(this, getReasonTypes()));
             table.setDefaultRenderer(Object.class, new CustomTableCellRenderer(holidaysMap, reasonColorMap));
 
-            // Kontextmenü für Feiertage
             JPopupMenu popupMenu = new JPopupMenu();
             JMenuItem holidayItem = new JMenuItem("Als Feiertag markieren");
             popupMenu.add(holidayItem);
@@ -176,7 +236,6 @@ public class CalendarGUI extends JFrame {
                     }
                 }
             });
-
             holidayItem.addActionListener(e -> markAsHoliday(table.getSelectedRow(), year));
 
             JScrollPane scrollPane = new JScrollPane(table);
@@ -206,21 +265,34 @@ public class CalendarGUI extends JFrame {
             String monthName = monthLabel.getText();
             Month month = Month.valueOf(monthName.toUpperCase(Locale.GERMAN));
 
+            // Create a new holiday
             Holiday holiday = new Holiday(day, month, year, holidayName);
             holidaysMap.put(row, holiday);
 
+            // Set the holiday name in the table
             table.setValueAt(holiday.toString(), row, 2);
             ((DefaultTableModel) table.getModel()).fireTableRowsUpdated(row, row);
 
+            // Call the method to make the row read-only
             setHolidayRowReadOnly(row);
         }
     }
 
     private void setHolidayRowReadOnly(int row) {
+        // Loop through all columns in the selected row and set their background color to light gray.
         for (int column = 0; column < table.getColumnCount(); column++) {
-            table.getCellRenderer(row, column).getTableCellRendererComponent(table, null, false, false, row, column).setBackground(Color.LIGHT_GRAY);
+            Component c = table.getCellRenderer(row, column).getTableCellRendererComponent(
+                    table, table.getValueAt(row, column), false, false, row, column);
+            c.setBackground(Color.LIGHT_GRAY); // Set background color for the row
         }
-        table.setDefaultEditor(Object.class, null); // Macht die Zellen schreibgeschützt
+
+        // Disable editing for this row by setting the cell editor to null
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            table.getColumnModel().getColumn(column).setCellEditor(null);
+        }
+
+        // Refresh the table to reflect changes
+        table.repaint();
     }
 
     private class YearSelectionListener implements ActionListener {

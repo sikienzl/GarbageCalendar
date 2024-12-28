@@ -39,7 +39,7 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
         Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
         String dayOfWeek = (String) table.getValueAt(row, 1);
-        boolean isSunday = "So.".equals(dayOfWeek);
+        boolean isSunday = "Sonntag".equalsIgnoreCase(dayOfWeek) || "So.".equalsIgnoreCase(dayOfWeek);
 
         boolean isHoliday = holidaysMap.containsKey(row);
 
@@ -72,6 +72,41 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
         return c;
     }
+    /*@Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+        String dayOfWeek = (String) table.getValueAt(row, 1);
+        boolean isSunday = "Sonntag".equalsIgnoreCase(dayOfWeek) || "So.".equalsIgnoreCase(dayOfWeek);
+
+        boolean isHoliday = holidaysMap.containsKey(row);
+
+        String reason = (String) table.getValueAt(row, 2);
+
+        // Standardfarben
+        c.setBackground(Color.WHITE);
+        c.setForeground(Color.BLACK);
+
+        // Feiertage und Sonntage
+        if (isHoliday || isSunday) {
+            c.setBackground(Color.LIGHT_GRAY);
+        } else {
+            // Färbung basierend auf dem Grund (Mülltypen)
+            Color reasonColor = reasonColorMap.get(reason);
+            if (reasonColor != null) {
+                c.setBackground(reasonColor);
+                c.setForeground(reasonColor.equals(Color.BLACK) ? Color.WHITE : Color.BLACK);
+            }
+        }
+
+        // Inhalt für die "Grund"-Spalte
+        if (column == 2 && value instanceof String) {
+            ((JLabel) c).setText("<html>" + value.toString().replaceAll("\n", "<br/>") + "</html>");
+        }
+
+        return c;
+    }*/
+
 
     private boolean isGarbageType(String reason) {
         for (GarbageType type : GarbageType.values()) {
