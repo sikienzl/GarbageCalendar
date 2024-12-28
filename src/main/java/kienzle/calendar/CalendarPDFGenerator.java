@@ -9,9 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class CalendarPDFGenerator {
 
@@ -30,6 +28,42 @@ public class CalendarPDFGenerator {
 
             document.save(file);
         }
+    }
+
+    /*private List<String> splitReasons(List<String> reasons) {
+        List<String> newReasons = new LinkedList<>();
+        String[] arrayReasons = new String[0];
+        for(String reason: reasons) {
+            if(reason.contains("\n")) {
+                arrayReasons = reason.split("\n");
+            } else {
+                newReasons.add(reason);
+            }
+
+        }
+
+        for(int reasonNumber = 0; reasonNumber < arrayReasons.length; reasonNumber++) {
+            newReasons.add(arrayReasons[reasonNumber]);
+        }
+
+        return newReasons;
+    }*/
+
+    private List<String> splitReasons(List<String> reasons) {
+        List<String> newReasons = new LinkedList<>();
+
+        for (String reason : reasons) {
+            if (reason.contains("\n")) {
+                // Split the string by \n and add each part to the list
+                String[] splitParts = reason.split("\n");
+                Collections.addAll(newReasons, splitParts);
+            } else {
+                // Add the reason directly if it does not contain \n
+                newReasons.add(reason);
+            }
+        }
+
+        return newReasons;
     }
 
     private void addCalendarToPage(PDDocument document, PDPage page, int year, int startMonth, int endMonth,
@@ -56,6 +90,7 @@ public class CalendarPDFGenerator {
             // Zeichnen der Tabelle und Befüllen mit Text
             for (int month = startMonth; month <= endMonth; month++) {
                 YearMonth yearMonth = YearMonth.of(year, month);
+
                 List<String> reasons = calendarData.get(yearMonth);
 
                 // Monatsnamen oben schreiben
@@ -72,8 +107,7 @@ public class CalendarPDFGenerator {
                 contentStream.moveTo(monthStartX, startY - 15); // Startpunkt der Linie
                 contentStream.lineTo(monthStartX + cellWidth, startY - 15); // Endpunkt der Linie
                 contentStream.stroke();
-                // Zeichnen der Spalten (Tage)
-                //contentStream.setFont(PDType1Font.HELVETICA, 10);
+
                 for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
                     float cellX = monthStartX;
                     float cellY = startY - (day * cellHeight);
@@ -91,7 +125,7 @@ public class CalendarPDFGenerator {
                     if (isHoliday || isSunday) {
                         contentStream.setNonStrokingColor(192, 192, 192); // Grau für Feiertage
                     } else if (isGarbageDay) {
-                        contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Müllabfuhr
+                        //contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Müllabfuhr
                     } else {
                         contentStream.setNonStrokingColor(255, 255, 255); // Weiß (Standard)
                     }
@@ -106,6 +140,9 @@ public class CalendarPDFGenerator {
                     String weekdayText = weekday; // Wochentag
                     String reasonText = (isHoliday ? holiday.getName() : reason); // Grund
 
+                    // Zeilenumbruch für reasonText: Splitte den Text an '\n' und schreibe jede Zeile
+                    String[] reasonLines = reasonText.split("\n");
+
                     contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Text
                     contentStream.beginText();
                     contentStream.newLineAtOffset(cellX + 5, cellY - 12); // Tagnummer
@@ -117,10 +154,14 @@ public class CalendarPDFGenerator {
                     contentStream.showText(weekdayText);
                     contentStream.endText();
 
-                    contentStream.beginText();
-                    contentStream.newLineAtOffset(cellX + 80, cellY - 12); // Reason
-                    contentStream.showText(reasonText);
-                    contentStream.endText();
+                    // Grund (Reason) mit Zeilenumbruch verarbeiten
+                    float reasonStartY = cellY - 12;
+                    for (int i = 0; i < reasonLines.length; i++) {
+                        contentStream.beginText();
+                        contentStream.newLineAtOffset(cellX + 80, reasonStartY - (i * 10)); // Verschiebung der Zeilen nach unten
+                        contentStream.showText(reasonLines[i]);
+                        contentStream.endText();
+                    }
 
                     // Horizontale Linie unter dem Tag
                     contentStream.moveTo(cellX, cellY - cellHeight);
@@ -128,23 +169,18 @@ public class CalendarPDFGenerator {
                     contentStream.stroke();
 
                     // Vertikale Trennlinien
-
-                    // Erste vertikale Linie (vor Tagesnummer)
                     contentStream.moveTo(cellX, cellY);
                     contentStream.lineTo(cellX, cellY - cellHeight);
                     contentStream.stroke();
 
-                    // Nach der Tagesnummer
                     contentStream.moveTo(cellX + 30, cellY);
                     contentStream.lineTo(cellX + 30, cellY - cellHeight);
                     contentStream.stroke();
 
-                    // Nach dem Wochentag
                     contentStream.moveTo(cellX + 75, cellY);
                     contentStream.lineTo(cellX + 75, cellY - cellHeight);
                     contentStream.stroke();
 
-                    // Nach dem Reason (am Ende der Zelle)
                     contentStream.moveTo(cellX + cellWidth, cellY);
                     contentStream.lineTo(cellX + cellWidth, cellY - cellHeight);
                     contentStream.stroke();
@@ -154,6 +190,7 @@ public class CalendarPDFGenerator {
             contentStream.close();
         }
     }
+
 
     // Hilfsmethode, um den Wochentag des Tags als String zurückzugeben
     private String getWeekdayName(int weekdayIndex) {
