@@ -85,15 +85,14 @@ public class CalendarGUI extends JFrame {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Speichern als PDF");
 
-            // Nur PDF-Dateien zulassen
-            FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF-Dateien (*.pdf)", "pdf");
-            fileChooser.setFileFilter(pdfFilter);
+            // Setzt einen Filter für PDF-Dateien
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF-Dateien (*.pdf)", "pdf");
+            fileChooser.setFileFilter(filter);
 
             if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-
-                // Sicherstellen, dass die Datei die Endung ".pdf" hat
-                if (!selectedFile.getName().toLowerCase().endsWith(".pdf")) {
+                // Fügt ".pdf" hinzu, wenn der Benutzer keine Endung eingegeben hat
+                if (!selectedFile.getName().endsWith(".pdf")) {
                     selectedFile = new File(selectedFile.getAbsolutePath() + ".pdf");
                 }
 

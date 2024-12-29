@@ -29,11 +29,9 @@ public class ReasonSelectionDialog extends JDialog {
     private List<String> selectedReasons;
     private JCheckBox jCheckBoxHoliday;
     private JTextField jTextFieldHoliday;
-    private boolean isSunday;
 
     public ReasonSelectionDialog(Frame owner, List<String> reasons, boolean isSunday) {
         super(owner, "Select Reasons", true);
-        this.isSunday = isSunday; 
 
         checkBoxes = new ArrayList<>();
         selectedReasons = new ArrayList<>();
@@ -45,16 +43,18 @@ public class ReasonSelectionDialog extends JDialog {
         jTextFieldHoliday = new JTextField();
         jTextFieldHoliday.setEnabled(false);
 
-        for (String reason : reasons) {
-            JCheckBox checkBox = new JCheckBox(reason);
-            checkBox.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updateHolidayComponents();
-                }
-            });
-            panel.add(checkBox);
-            checkBoxes.add(checkBox);
+        if(!isSunday) {
+            for (String reason : reasons) {
+                JCheckBox checkBox = new JCheckBox(reason);
+                checkBox.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        updateHolidayComponents();
+                    }
+                });
+                panel.add(checkBox);
+                checkBoxes.add(checkBox);
+            }
         }
 
         jCheckBoxHoliday.addActionListener(new ActionListener() {
@@ -74,8 +74,8 @@ public class ReasonSelectionDialog extends JDialog {
                 selectedReasons.clear();
                 if (jCheckBoxHoliday.isSelected()) {
                     if (!jTextFieldHoliday.getText().trim().isEmpty()) {
-                        
-                        selectedReasons.add(jTextFieldHoliday.getText().trim());
+
+                        selectedReasons.add("#" +jTextFieldHoliday.getText().trim() + "#");
                     }
                 } else {
                     for (JCheckBox checkBox : checkBoxes) {

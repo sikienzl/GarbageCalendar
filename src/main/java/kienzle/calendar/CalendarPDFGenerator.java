@@ -1,6 +1,7 @@
 package kienzle.calendar;
 
 import kienzle.holiday.Holiday;
+import kienzle.type.GarbageType;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CalendarPDFGenerator {
 
@@ -114,31 +117,50 @@ public class CalendarPDFGenerator {
 
                     // Überprüfen, ob es ein Feiertag oder eine Müllabfuhr gibt
                     String reason = reasons != null && reasons.size() >= day ? reasons.get(day - 1) : "";
+
+
                     Holiday holiday = holidaysMap.get(day);
 
+
                     boolean isHoliday = holiday != null;
-                    boolean isGarbageDay = reason != null && !reason.isEmpty();
+                    String reasonText = (isHoliday ? holiday.getName() : reason);
+                    //boolean isGarbageDay = reason != null && !reason.isEmpty();
+                    //boolean isGarbageDay = reasonText.contains("*muell*");
+                    List<String> garbageTypes = Arrays.asList(
+                            GarbageType.Papiermuell.toString(),
+                            GarbageType.Biomuell.toString(),
+                            GarbageType.Plastikmuell.toString(),
+                            GarbageType.Restmuell.toString()
+                    );
+
+                    // Prüfen, ob "muell" oder ein GarbageType enthalten ist
+                    boolean isGarbageDay = garbageTypes.stream().anyMatch(type -> reasonText.contains(type));
                     String weekday = getWeekdayName(YearMonth.of(year, month).atDay(day).getDayOfWeek().getValue());
                     boolean isSunday = "Sonntag".equalsIgnoreCase(weekday) || "So".equalsIgnoreCase(weekday);
 
+                    boolean isHolidayCheck = (reasonText.startsWith("#") && reasonText.endsWith("#"));
+
+
+
                     // Zelle zeichnen
-                    if (isHoliday || isSunday) {
+                    if (isHolidayCheck || isSunday) {
                         contentStream.setNonStrokingColor(192, 192, 192); // Grau für Feiertage
                     } else if (isGarbageDay) {
+                        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
                         //contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Müllabfuhr
+                        contentStream.setNonStrokingColor(192, 210, 192);
                     } else {
                         contentStream.setNonStrokingColor(255, 255, 255); // Weiß (Standard)
                     }
 
                     contentStream.addRect(cellX, cellY, cellWidth, -cellHeight);
                     contentStream.fill();
-                    contentStream.setStrokingColor(0, 0, 0);
+                    //contentStream.setStrokingColor(0, 0, 0);
                     contentStream.stroke();
 
                     // Text in der Zelle
                     String text = String.format("%02d", day); // Nur der Tag
                     String weekdayText = weekday; // Wochentag
-                    String reasonText = (isHoliday ? holiday.getName() : reason); // Grund
 
                     // Zeilenumbruch für reasonText: Splitte den Text an '\n' und schreibe jede Zeile
                     String[] reasonLines = reasonText.split("\n");
