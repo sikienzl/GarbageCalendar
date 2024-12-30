@@ -50,7 +50,8 @@ public class CalendarGUI extends JFrame {
     private JTable table;
     private JLabel monthLabel;
     private Map<Integer, Holiday> holidaysMap = new HashMap<>();
-    private Map<YearMonth, List<String>> calendarData = new HashMap<>();
+    //private Map<YearMonth, List<String>> calendarData = new HashMap<>();
+    private Map<YearMonth, Map<Integer, String>> calendarData = new HashMap<>();
 
 
     public CalendarGUI(List<GarbageCan> garbageCans) {
@@ -163,6 +164,7 @@ public class CalendarGUI extends JFrame {
         cardPanel.revalidate();
         cardPanel.repaint();
     }
+
     private JPanel createCalendarPanel(int year, int startMonth, int endMonth) {
         JPanel panel = new JPanel(new GridLayout(1, endMonth - startMonth + 1)); // Eine Zeile, eine Spalte pro Monat
 
@@ -178,10 +180,13 @@ public class CalendarGUI extends JFrame {
                 data[day - 1][0] = date.getDayOfMonth(); // Tag (Nummer)
                 data[day - 1][1] = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.GERMAN); // Wochentag (Text)
 
-                // Grund (Feiertag oder Müllabfuhr)
-                List<String> reasons = calendarData.get(yearMonth);
-                if (reasons != null && reasons.size() > day - 1) {
-                    data[day - 1][2] = reasons.get(day - 1);
+                // Hole oder erstelle die Map von Tagen zu Gründen für diesen Monat
+                Map<Integer, String> dailyReasons = calendarData.computeIfAbsent(yearMonth, k -> new HashMap<>());
+
+                // Wenn der Tag einen Grund hat, weise diesen zu
+                String reason = dailyReasons.getOrDefault(day, "");
+                if (!reason.isEmpty()) {
+                    data[day - 1][2] = reason;
                 } else {
                     Holiday holiday = holidaysMap.get(day);
                     if (holiday != null) {
@@ -192,6 +197,7 @@ public class CalendarGUI extends JFrame {
                 }
             }
 
+            int finalMonth1 = month;
             DefaultTableModel model = new DefaultTableModel(data, columnNames) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
@@ -202,15 +208,16 @@ public class CalendarGUI extends JFrame {
                 @Override
                 public void setValueAt(Object value, int row, int column) {
                     super.setValueAt(value, row, column);
-                    if (column == 2) {
-                        // Speichere den geänderten Wert in der zentralen Datenstruktur
-                        YearMonth currentMonth = YearMonth.of(year, startMonth);
-                        calendarData.computeIfAbsent(currentMonth, k -> new ArrayList<>());
-                        List<String> reasons = calendarData.get(currentMonth);
-                        while (reasons.size() <= row) {
-                            reasons.add("");
-                        }
-                        reasons.set(row, value != null ? value.toString() : "");
+
+                    if (column == 2) { // Nur die "Grund"-Spalte ist editierbar
+                        YearMonth currentMonth = YearMonth.of(year, finalMonth1);
+
+                        // Stelle sicher, dass die Map für den Monat existiert
+                        Map<Integer, String> dailyReasons = calendarData.computeIfAbsent(currentMonth, k -> new HashMap<>());
+
+                        // Den geänderten Wert speichern
+                        int day = row + 1; // Der Tag ist die Zeilen-Nummer + 1 (da Zeilen bei 0 beginnen)
+                        dailyReasons.put(day, value != null ? value.toString() : "");  // Verhindert Null-Werte
                     }
                 }
             };
@@ -235,6 +242,23 @@ public class CalendarGUI extends JFrame {
                     }
                 }
             });
+
+            int finalMonth = month;
+            model.addTableModelListener(e -> {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (column == 2) { // Nur bei der "Grund"-Spalte
+                    Object newValue = model.getValueAt(row, column);
+                    YearMonth currentMonth = YearMonth.of(year, finalMonth);
+                    Map<Integer, String> dailyReasons = calendarData.computeIfAbsent(currentMonth, k -> new HashMap<>());
+
+                    // Den neuen Wert in die Map setzen
+                    int day = row + 1; // Der Tag ist die Zeilen-Nummer + 1
+                    dailyReasons.put(day, newValue != null ? newValue.toString() : "");
+                    System.out.println("DEBUG: Gründe-Map nach Änderung: " + dailyReasons + " Year: " + year + " month: " + finalMonth + " row: " + row + " column " + column);
+                }
+            });
+
             holidayItem.addActionListener(e -> markAsHoliday(table.getSelectedRow(), year));
 
             JScrollPane scrollPane = new JScrollPane(table);

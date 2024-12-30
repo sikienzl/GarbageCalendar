@@ -11,46 +11,27 @@ import java.io.IOException;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CalendarPDFGenerator {
-
-    public void generatePDF(File file, int year, Map<YearMonth, List<String>> calendarData, Map<Integer, Holiday> holidaysMap) throws IOException {
+    public void generatePDF(File file, int year, Map<YearMonth, Map<Integer, String>> calendarData, Map<Integer, Holiday> holidaysMap) throws IOException {
         try (PDDocument document = new PDDocument()) {
             // Erste Seite: Januar - Juni
             PDRectangle landscape = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
             PDPage page1 = new PDPage(landscape);
             document.addPage(page1);
+            // Die Methode wird jetzt mit der Map<YearMonth, Map<Integer, String>> aufgerufen
             addCalendarToPage(document, page1, year, 1, 6, calendarData, holidaysMap);
 
             // Zweite Seite: Juli - Dezember
             PDPage page2 = new PDPage(landscape);
             document.addPage(page2);
+            // Auch hier die angepasste Map verwenden
             addCalendarToPage(document, page2, year, 7, 12, calendarData, holidaysMap);
 
             document.save(file);
         }
     }
 
-    /*private List<String> splitReasons(List<String> reasons) {
-        List<String> newReasons = new LinkedList<>();
-        String[] arrayReasons = new String[0];
-        for(String reason: reasons) {
-            if(reason.contains("\n")) {
-                arrayReasons = reason.split("\n");
-            } else {
-                newReasons.add(reason);
-            }
-
-        }
-
-        for(int reasonNumber = 0; reasonNumber < arrayReasons.length; reasonNumber++) {
-            newReasons.add(arrayReasons[reasonNumber]);
-        }
-
-        return newReasons;
-    }*/
 
     private List<String> splitReasons(List<String> reasons) {
         List<String> newReasons = new LinkedList<>();
@@ -69,8 +50,9 @@ public class CalendarPDFGenerator {
         return newReasons;
     }
 
+
     private void addCalendarToPage(PDDocument document, PDPage page, int year, int startMonth, int endMonth,
-                                   Map<YearMonth, List<String>> calendarData, Map<Integer, Holiday> holidaysMap) throws IOException {
+                                   Map<YearMonth, Map<Integer, String>> calendarData, Map<Integer, Holiday> holidaysMap) throws IOException {
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
         try {
@@ -94,7 +76,8 @@ public class CalendarPDFGenerator {
             for (int month = startMonth; month <= endMonth; month++) {
                 YearMonth yearMonth = YearMonth.of(year, month);
 
-                List<String> reasons = calendarData.get(yearMonth);
+                // Holen Sie sich die Gründe für den Monat aus der Map
+                Map<Integer, String> reasonsMap = calendarData.get(yearMonth);
 
                 // Monatsnamen oben schreiben
                 float monthStartX = startX + (month - startMonth) * cellWidth;
@@ -105,7 +88,7 @@ public class CalendarPDFGenerator {
                 contentStream.endText();
 
                 // Zeichnen der Spalten (Tage)
-                contentStream.setFont(PDType1Font.HELVETICA, 10);
+                contentStream.setFont(PDType1Font.HELVETICA, 8);
 
                 contentStream.moveTo(monthStartX, startY - 15); // Startpunkt der Linie
                 contentStream.lineTo(monthStartX + cellWidth, startY - 15); // Endpunkt der Linie
@@ -116,16 +99,17 @@ public class CalendarPDFGenerator {
                     float cellY = startY - (day * cellHeight);
 
                     // Überprüfen, ob es ein Feiertag oder eine Müllabfuhr gibt
-                    String reason = reasons != null && reasons.size() >= day ? reasons.get(day - 1) : "";
+                    String reason = "";
 
-
+                    // Feiertag prüfen
                     Holiday holiday = holidaysMap.get(day);
+                    if (holiday != null) {
+                        reason = holiday.getName();
+                    } else if (reasonsMap != null && reasonsMap.containsKey(day)) {
+                        // Grund aus calendarData holen, wenn vorhanden
+                        reason = reasonsMap.get(day);
+                    }
 
-
-                    boolean isHoliday = holiday != null;
-                    String reasonText = (isHoliday ? holiday.getName() : reason);
-                    //boolean isGarbageDay = reason != null && !reason.isEmpty();
-                    //boolean isGarbageDay = reasonText.contains("*muell*");
                     List<String> garbageTypes = Arrays.asList(
                             GarbageType.Papiermuell.toString(),
                             GarbageType.Biomuell.toString(),
@@ -133,29 +117,28 @@ public class CalendarPDFGenerator {
                             GarbageType.Restmuell.toString()
                     );
 
-                    // Prüfen, ob "muell" oder ein GarbageType enthalten ist
-                    boolean isGarbageDay = garbageTypes.stream().anyMatch(type -> reasonText.contains(type));
+                    // Prüfen, ob der Grund Müllabfuhr-Informationen enthält
+                    String finalReason = reason;
+                    boolean isGarbageDay = garbageTypes.stream().anyMatch(type -> finalReason.contains(type));
                     String weekday = getWeekdayName(YearMonth.of(year, month).atDay(day).getDayOfWeek().getValue());
                     boolean isSunday = "Sonntag".equalsIgnoreCase(weekday) || "So".equalsIgnoreCase(weekday);
 
-                    boolean isHolidayCheck = (reasonText.startsWith("#") && reasonText.endsWith("#"));
-
-
+                    boolean isHolidayCheck = (reason.startsWith("#") && reason.endsWith("#"));
 
                     // Zelle zeichnen
                     if (isHolidayCheck || isSunday) {
                         contentStream.setNonStrokingColor(192, 192, 192); // Grau für Feiertage
+                        if (reason.startsWith("#") && reason.endsWith("#")) {
+                            reason = reason.substring(1, reason.length() - 1); // Entferne die # Zeichen
+                        }
                     } else if (isGarbageDay) {
-                        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-                        //contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Müllabfuhr
-                        contentStream.setNonStrokingColor(192, 210, 192);
+                        contentStream.setNonStrokingColor(128, 128, 128);
                     } else {
                         contentStream.setNonStrokingColor(255, 255, 255); // Weiß (Standard)
                     }
 
                     contentStream.addRect(cellX, cellY, cellWidth, -cellHeight);
                     contentStream.fill();
-                    //contentStream.setStrokingColor(0, 0, 0);
                     contentStream.stroke();
 
                     // Text in der Zelle
@@ -163,28 +146,55 @@ public class CalendarPDFGenerator {
                     String weekdayText = weekday; // Wochentag
 
                     // Zeilenumbruch für reasonText: Splitte den Text an '\n' und schreibe jede Zeile
-                    String[] reasonLines = reasonText.split("\n");
+                    String[] reasonLines = reason.split("\n");
 
                     contentStream.setNonStrokingColor(0, 0, 0); // Schwarz für Text
                     contentStream.beginText();
-                    contentStream.newLineAtOffset(cellX + 5, cellY - 12); // Tagnummer
+                    contentStream.newLineAtOffset(cellX + 1, cellY - 12); // Tagnummer
                     contentStream.showText(text);
                     contentStream.endText();
 
                     contentStream.beginText();
-                    contentStream.newLineAtOffset(cellX + 35, cellY - 12); // Wochentag
+                    contentStream.newLineAtOffset(cellX + 13, cellY - 12); // Wochentag
                     contentStream.showText(weekdayText);
                     contentStream.endText();
 
                     // Grund (Reason) mit Zeilenumbruch verarbeiten
-                    float reasonStartY = cellY - 12;
-                    for (int i = 0; i < reasonLines.length; i++) {
-                        contentStream.beginText();
-                        contentStream.newLineAtOffset(cellX + 80, reasonStartY - (i * 10)); // Verschiebung der Zeilen nach unten
-                        contentStream.showText(reasonLines[i]);
-                        contentStream.endText();
+                    float reasonStartY = cellY - 7;
+                    int elementsPerRow = 2;  // 2 Elemente pro Zeile
+
+                    // Berechne, wie viele Zeilen benötigt werden
+                    int numberOfRows = (int) Math.ceil(reasonLines.length / (double) elementsPerRow);
+
+                    if (reasonLines.length < 3) {
+                        contentStream.setFont(PDType1Font.HELVETICA, 9);
                     }
 
+                    float xOffsetCellx = cellX + 24;
+                    for (int i = 0; i < numberOfRows; i++) {
+                        // Berechne den Y-Offset für diese Zeile (konstant für alle Elemente der Zeile)
+                        float yOffset = 0;
+                        if (reasonLines.length < 3) {
+                            yOffset = reasonStartY - (i * 6) - 3;
+                        } else {
+                            yOffset = reasonStartY - (i * 6);
+                        }
+                        for (int j = 0; j < elementsPerRow; j++) {
+                            int index = i * elementsPerRow + j;  // Bestimmt den Index des aktuellen Elements
+                            if (index < reasonLines.length) {
+                                contentStream.beginText();
+
+                                // Berechne den X-Offset basierend auf der Spalte (j)
+                                float xOffset = xOffsetCellx + (j * 50); // 100 ist der Abstand zwischen den Spalten
+                                contentStream.newLineAtOffset(xOffset, yOffset);
+                                contentStream.showText(reasonLines[index]);
+
+                                contentStream.endText();
+                            }
+                        }
+                    }
+
+                    contentStream.setFont(PDType1Font.HELVETICA, 8);
                     // Horizontale Linie unter dem Tag
                     contentStream.moveTo(cellX, cellY - cellHeight);
                     contentStream.lineTo(cellX + cellWidth, cellY - cellHeight);
@@ -195,12 +205,12 @@ public class CalendarPDFGenerator {
                     contentStream.lineTo(cellX, cellY - cellHeight);
                     contentStream.stroke();
 
-                    contentStream.moveTo(cellX + 30, cellY);
-                    contentStream.lineTo(cellX + 30, cellY - cellHeight);
+                    contentStream.moveTo(cellX + 11, cellY);
+                    contentStream.lineTo(cellX + 11, cellY - cellHeight);
                     contentStream.stroke();
 
-                    contentStream.moveTo(cellX + 75, cellY);
-                    contentStream.lineTo(cellX + 75, cellY - cellHeight);
+                    contentStream.moveTo(cellX + 24, cellY);
+                    contentStream.lineTo(cellX + 24, cellY - cellHeight);
                     contentStream.stroke();
 
                     contentStream.moveTo(cellX + cellWidth, cellY);
@@ -212,7 +222,6 @@ public class CalendarPDFGenerator {
             contentStream.close();
         }
     }
-
 
     // Hilfsmethode, um den Wochentag des Tags als String zurückzugeben
     private String getWeekdayName(int weekdayIndex) {
