@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.kienzle'
-version '1.0-SNAPSHOT'
+version '1.0.0'
 
 sourceCompatibility = '11'
 
@@ -19,4 +19,30 @@ dependencies {
 
 application {
     mainClass = 'kienzle.calendar.Calendar'
+}
+
+task tagRelease {
+    doLast {
+        def tagName = "v${project.version}"  // Tag-Basename basierend auf der Version
+        def commitMessage = "Release version ${project.version}"
+
+        // Git Tag erstellen
+        exec {
+            commandLine 'git', 'tag', '-a', tagName, '-m', commitMessage
+        }
+
+
+        exec {
+            commandLine 'git', 'push', 'origin', tagName
+        }
+
+        println "Tag $tagName wurde erstellt und zu GitHub gepusht!"
+    }
+}
+
+task buildAndTag {
+    dependsOn 'build', 'tagRelease'
+    doLast {
+        println "Build abgeschlossen und Tag erstellt!"
+    }
 }
