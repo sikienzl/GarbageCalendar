@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
-          distribution: 'oraclejdk'  # Füge hier das distribution Attribut hinzu
+          distribution: 'adoptopenjdk'  # Oder 'temurin' als bevorzugte Option
 
       - name: Build with Gradle
         run: ./gradlew build
