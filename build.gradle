@@ -21,6 +21,14 @@ application {
     mainClass = 'kienzle.calendar.Calendar'
 }
 
+task customBuild {
+    dependsOn 'build' // Führt den Standard-Build-Task aus
+    doLast {
+        println "Das Projekt wurde erfolgreich gebaut!"
+    }
+}
+
+
 task tagRelease {
     doLast {
         def tagName = "v${project.version}"  // Tag-Basename basierend auf der Version
