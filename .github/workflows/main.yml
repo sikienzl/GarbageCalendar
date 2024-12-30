@@ -1,12 +1,15 @@
-name: Release Build
+name: Java CI with Gradle
 
 on:
   push:
-    tags:
-      - 'v*'  # Reagiert auf Tag-Pushes wie v1.0.0
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,12 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'adoptopenjdk'  # Füge hier das distribution Attribut hinzu
 
       - name: Build with Gradle
         run: ./gradlew build
-
-      - name: Create Git Tag
-        run: |
-          VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')
-          git tag -a "v$VERSION" -m "Release version $VERSION"
-          git push origin "v$VERSION"
