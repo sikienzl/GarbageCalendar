@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.kienzle'
+version '1.0.0'
+
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.pdfbox:pdfbox:2.0.29'
+    implementation 'org.apache.pdfbox:fontbox:2.0.29'
+}
+
+application {
+    mainClass = 'kienzle.calendar.Calendar'
+}
+
+task tagRelease {
+    doLast {
+        def tagName = "v${project.version}"  // Tag-Basename basierend auf der Version
+        def commitMessage = "Release version ${project.version}"
+
+        // Git Tag erstellen
+        exec {
+            commandLine 'git', 'tag', '-a', tagName, '-m', commitMessage
+        }
+
+
+        exec {
+            commandLine 'git', 'push', 'origin', tagName
+        }
+
+        println "Tag $tagName wurde erstellt und zu GitHub gepusht!"
+    }
+}
+
+task buildAndTag {
+    dependsOn 'build', 'tagRelease'
+    doLast {
+        println "Build abgeschlossen und Tag erstellt!"
+    }
+}
