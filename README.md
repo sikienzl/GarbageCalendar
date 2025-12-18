@@ -14,12 +14,12 @@
 - **Manual public holiday configuration** for accurate scheduling
 
 ### Export Options
-- **PDF export** (color version available)
+- **PDF export** (grayscale version available)
 
 ### Upcoming Features (Planned)
 - Autosave functionality
 - Dedicated save button
-- Grayscale PDF export option
+- Color PDF export option
 
 ## 📦 Installation
 1. Clone the repository:
