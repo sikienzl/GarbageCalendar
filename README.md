@@ -24,7 +24,7 @@
 ## 📦 Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/GarbageCalendar.git
+   git clone https://github.com/sikienzl/GarbageCalendar.git
 2. Ensure Java (JDK 11+) is installed
 3. Build and run the project
 
