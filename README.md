@@ -38,7 +38,7 @@
 ## 🤝 Support & Donations
 For questions or support, contact: <sikienzl.github@t-online.de>
 
-💙 Support the project via bunq: <bunq.me/DEsikienzl>
+💙 Support the project via bunq: [bunq](bunq.me/DEsikienzl)
 
 ## 🛠️ Contributing
 Contributions are welcome! Please open an issue or submit a pull request.
