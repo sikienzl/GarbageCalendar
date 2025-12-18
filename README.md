@@ -1,11 +1,8 @@
 <!-- Logo (replace with your actual logo path) -->
-<p align="center">
-  <img src="path/to/your/logo.png" alt="GarbageCalendar Logo" width="200">
-</p>
-
----
-
-# GarbageCalendar
+<h1>
+  <img src="GarbageCalendar.png" alt="GarbageCalendar Logo" width="100" style="vertical-align: middle; margin-right: 10px;">
+  GarbageCalendar
+</h1>
 
 **GarbageCalendar** is a Java-based tool for creating and managing waste collection schedules for German municipalities. The current version provides core functionality for scheduling and exporting garbage collection calendars.
 
