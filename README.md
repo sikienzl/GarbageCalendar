@@ -1,6 +1,6 @@
 <!-- Logo (replace with your actual logo path) -->
-<h1>
-  <img src="GarbageCalendar.png" alt="GarbageCalendar Logo" width="100" style="vertical-align: middle; margin-right: 10px;">
+<h1 style="display: flex; align-items: center; background-color: #f6f8fa; padding: 5px;">
+  <img src="GarbageCalendar.png" alt="GarbageCalendar Logo" width="100" style="margin-right: 10px; background-color: #f6f8fa;">
   GarbageCalendar
 </h1>
 
