@@ -23,11 +23,15 @@ jobs:
                   java-version: '17'
                   distribution: 'temurin'
 
-            - name: Build with Gradle
-              run: ./gradlew build
+            - name: Build with Gradle (without wrapper)
+              uses: gradle/gradle-build-action@v2
+              with:
+                arguments: build
 
-            - name: Create native packages
-              run: ./gradlew jpackage
+            - name: Build with Gradle (without wrapper)
+              uses: gradle/gradle-build-action@v2
+              with:
+                arguments: jpackage
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v3
