@@ -23,12 +23,12 @@ jobs:
                   java-version: '17'
                   distribution: 'temurin'
 
-            - name: Build with Gradle (without wrapper)
+            - name: Build
               uses: gradle/gradle-build-action@v2
               with:
                 arguments: build
 
-            - name: Build with Gradle (without wrapper)
+            - name: Create package
               uses: gradle/gradle-build-action@v2
               with:
                 arguments: jpackage
