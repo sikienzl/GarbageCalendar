@@ -13,18 +13,15 @@ jobs:
           - os: ubuntu-latest
             artifact-name: linux-packages
             package-types: 'deb,rpm,tar'
-            jpackage-opts: "--linux-package-name ${{ github.event.repository.name }} --linux-shortcut --verbose"
-            main-jar-pattern: '*.jar'
+            jpackage-opts: "--linux-package-name GarbageCalendar --linux-shortcut --verbose"
           - os: macos-latest
             artifact-name: macos-packages
             package-types: 'dmg,pkg,tar'
-            jpackage-opts: "--mac-package-name ${{ github.event.repository.name }} --mac-package-identifier com.${{ github.repository_owner }}.${{ github.event.repository.name }} --verbose"
-            main-jar-pattern: '*.jar'
+            jpackage-opts: "--mac-package-name GarbageCalendar --mac-package-identifier com.${{ github.repository_owner }}.GarbageCalendar --verbose"
           - os: windows-latest
             artifact-name: windows-packages
             package-types: 'msi,exe,zip'
             jpackage-opts: "--win-dir-chooser --win-shortcut --verbose"
-            main-jar-pattern: '*.jar'
 
     runs-on: ${{ matrix.os }}
 
@@ -51,9 +48,16 @@ jobs:
       - name: Find main JAR
         id: find-jar
         run: |
-          JAR_FILE=$(ls build/libs/${{ matrix.main-jar-pattern }} | grep -v plain | head -n 1)
-          echo "main-jar=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "Found JAR: $JAR_FILE"
+          # Suche nach der JAR-Datei im build/libs-Verzeichnis
+          JAR_FILE=$(ls build/libs/*.jar | grep -v plain | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "::error::Keine JAR-Datei in build/libs/ gefunden!"
+            exit 1
+          fi
+          JAR_FILENAME=$(basename "$JAR_FILE")
+          echo "main-jar=$JAR_FILENAME" >> $GITHUB_OUTPUT
+          echo "main-jar-path=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "Found JAR: $JAR_FILENAME"
 
       - name: Create package directory
         run: mkdir -p build/jpackage
@@ -65,7 +69,7 @@ jobs:
           for TYPE in "${TYPES[@]}"; do
             echo "Creating package type: $TYPE"
             jpackage \
-              --name ${{ github.event.repository.name }} \
+              --name GarbageCalendar \
               --input build/libs/ \
               --main-jar ${{ steps.find-jar.outputs.main-jar }} \
               --main-class ${MAIN_CLASS} \
