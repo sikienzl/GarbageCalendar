@@ -50,10 +50,11 @@ jobs:
 
       - name: Find main JAR
         id: find-jar
+        shell: bash
         run: |
           JAR_FILE=$(ls build/libs/*.jar | grep -v plain | head -n 1)
           if [ -z "$JAR_FILE" ]; then
-            echo "::error::Keine JAR-Datei in build/libs/ gefunden!"
+            echo "::error::No JAR file found in build/libs/"
             exit 1
           fi
           JAR_FILENAME=$(basename "$JAR_FILE")
@@ -65,6 +66,7 @@ jobs:
         run: mkdir -p build/jpackage
 
       - name: Create native packages with jpackage
+        shell: bash
         run: |
           IFS=',' read -ra TYPES <<< "${{ matrix.package-types }}"
           for TYPE in "${TYPES[@]}"; do
@@ -73,7 +75,7 @@ jobs:
               --name "${{ matrix.app-name }}" \
               --input build/libs/ \
               --main-jar ${{ steps.find-jar.outputs.main-jar }} \
-              --main-class kienzle.calendar.Calendar \
+              --main-class garbagecalendar.Main \
               --type $TYPE \
               ${{ matrix.jpackage-opts }} \
               --dest build/jpackage/
