@@ -2,23 +2,17 @@ name: Build and Release
 
 on:
   push:
-    tags: ['v*']
+    tags: ['v*']  # Nur bei Tags wie v1.0.0 ausführen
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]  # Nur Linux für Releases (kann später erweitert werden)
         include:
           - os: ubuntu-latest
             artifact-name: linux-packages
             package-type: deb,rpm,tar
-          - os: macos-latest
-            artifact-name: macos-packages
-            package-type: dmg,pkg,tar
-          - os: windows-latest
-            artifact-name: windows-packages
-            package-type: msi,exe,zip
 
     runs-on: ${{ matrix.os }}
 
@@ -35,8 +29,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Make gradlew executable (Unix)
-        if: runner.os != 'Windows'
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build project
@@ -57,7 +50,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
@@ -65,7 +57,9 @@ jobs:
           path: packages
 
       - name: List downloaded files (debug)
-        run: find packages -type f -exec ls -lh {} \;
+        run: |
+          echo "Inhalt von packages:"
+          ls -R packages/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -80,5 +74,6 @@ jobs:
             packages/**/*.msi
             packages/**/*.zip
           generate_release_notes: true
+          fail_on_unmatched_files: false  # Wichtig: Verhindert Fehler, wenn keine Dateien gefunden werden
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
