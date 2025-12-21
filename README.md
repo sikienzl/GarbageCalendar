@@ -4,6 +4,8 @@
   GarbageCalendar
 </h1>
 
+[![Java CI with Gradle](https://github.com/sikienzl/GarbageCalendar/actions/workflows/main.yml/badge.svg)](https://github.com/sikienzl/GarbageCalendar/actions/workflows/main.yml)
+
 **GarbageCalendar** is a Java-based tool for creating and managing waste collection schedules for German municipalities. The current version provides core functionality for scheduling and exporting garbage collection calendars.
 
 ## ✨ Features
