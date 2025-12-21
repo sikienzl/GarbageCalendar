@@ -12,22 +12,28 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact-name: linux-packages
-            package-type: deb,rpm,tar
+            package-types: 'deb,rpm,tar'
+            jpackage-opts: "--linux-package-name ${{ github.event.repository.name }} --linux-shortcut --verbose"
+            main-jar-pattern: '*.jar'
           - os: macos-latest
             artifact-name: macos-packages
-            package-type: dmg,pkg,tar
+            package-types: 'dmg,pkg,tar'
+            jpackage-opts: "--mac-package-name ${{ github.event.repository.name }} --mac-package-identifier com.${{ github.repository_owner }}.${{ github.event.repository.name }} --verbose"
+            main-jar-pattern: '*.jar'
           - os: windows-latest
             artifact-name: windows-packages
-            package-type: msi,exe,zip
+            package-types: 'msi,exe,zip'
+            jpackage-opts: "--win-dir-chooser --win-shortcut --verbose"
+            main-jar-pattern: '*.jar'
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # ✅ Bereits v4
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -42,13 +48,39 @@ jobs:
       - name: Build project
         run: ./gradlew build --no-daemon --stacktrace
 
+      - name: Find main JAR
+        id: find-jar
+        run: |
+          JAR_FILE=$(ls build/libs/${{ matrix.main-jar-pattern }} | grep -v plain | head -n 1)
+          echo "main-jar=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "Found JAR: $JAR_FILE"
+
+      - name: Create package directory
+        run: mkdir -p build/jpackage
+
       - name: Create native packages with jpackage
-        run: ./gradlew jpackage --no-daemon --stacktrace
+        run: |
+          # Split package types and create separate packages
+          IFS=',' read -ra TYPES <<< "${{ matrix.package-types }}"
+          for TYPE in "${TYPES[@]}"; do
+            echo "Creating package type: $TYPE"
+            jpackage \
+              --name ${{ github.event.repository.name }} \
+              --input build/libs/ \
+              --main-jar ${{ steps.find-jar.outputs.main-jar }} \
+              --main-class ${MAIN_CLASS} \
+              --type $TYPE \
+              ${{ matrix.jpackage-opts }} \
+              --dest build/jpackage/
+          done
         env:
-          JPACKAGE_TYPE: ${{ matrix.package-type }}
+          MAIN_CLASS: kienzle.calendar.Calendar
+
+      - name: List created packages
+        run: ls -R build/jpackage/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4  # 🔄 Geändert von v3 → v4
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
           path: build/jpackage/
@@ -60,15 +92,15 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4  # 🔄 Geändert von v3 → v4
+        uses: actions/download-artifact@v4
         with:
           path: packages
 
-      - name: List downloaded files (debug)
+      - name: List downloaded files
         run: find packages -type f -exec ls -lh {} \;
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             packages/**/*.deb
@@ -80,5 +112,6 @@ jobs:
             packages/**/*.msi
             packages/**/*.zip
           generate_release_notes: true
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
