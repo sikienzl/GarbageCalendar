@@ -12,17 +12,17 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact-name: linux-packages
-            package-types: 'deb,rpm,tar'
+            package-types: 'deb,rpm'
             jpackage-opts: "--linux-package-name garbagecalendar --linux-shortcut --verbose"
             app-name: "GarbageCalendar"
           - os: macos-latest
             artifact-name: macos-packages
-            package-types: 'dmg,pkg,tar'
+            package-types: 'dmg,pkg'  # Removed 'tar' as it's not supported on macOS
             jpackage-opts: "--mac-package-name GarbageCalendar --mac-package-identifier com.${{ github.repository_owner }}.garbagecalendar --verbose"
             app-name: "GarbageCalendar"
           - os: windows-latest
             artifact-name: windows-packages
-            package-types: 'msi,exe,zip'
+            package-types: 'msi,exe'
             jpackage-opts: "--win-dir-chooser --win-shortcut --verbose"
             app-name: "GarbageCalendar"
 
@@ -107,12 +107,10 @@ jobs:
           files: |
             packages/**/*.deb
             packages/**/*.rpm
-            packages/**/*.tar*
             packages/**/*.dmg
             packages/**/*.pkg
             packages/**/*.exe
             packages/**/*.msi
-            packages/**/*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
         env:
