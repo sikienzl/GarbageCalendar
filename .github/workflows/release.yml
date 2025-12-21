@@ -13,15 +13,18 @@ jobs:
           - os: ubuntu-latest
             artifact-name: linux-packages
             package-types: 'deb,rpm,tar'
-            jpackage-opts: "--linux-package-name GarbageCalendar --linux-shortcut --verbose"
+            jpackage-opts: "--linux-package-name garbagecalendar --linux-shortcut --verbose"
+            app-name: "GarbageCalendar"
           - os: macos-latest
             artifact-name: macos-packages
             package-types: 'dmg,pkg,tar'
-            jpackage-opts: "--mac-package-name GarbageCalendar --mac-package-identifier com.${{ github.repository_owner }}.GarbageCalendar --verbose"
+            jpackage-opts: "--mac-package-name GarbageCalendar --mac-package-identifier com.${{ github.repository_owner }}.garbagecalendar --verbose"
+            app-name: "GarbageCalendar"
           - os: windows-latest
             artifact-name: windows-packages
             package-types: 'msi,exe,zip'
             jpackage-opts: "--win-dir-chooser --win-shortcut --verbose"
+            app-name: "GarbageCalendar"
 
     runs-on: ${{ matrix.os }}
 
@@ -48,7 +51,6 @@ jobs:
       - name: Find main JAR
         id: find-jar
         run: |
-          # Suche nach der JAR-Datei im build/libs-Verzeichnis
           JAR_FILE=$(ls build/libs/*.jar | grep -v plain | head -n 1)
           if [ -z "$JAR_FILE" ]; then
             echo "::error::Keine JAR-Datei in build/libs/ gefunden!"
@@ -64,21 +66,18 @@ jobs:
 
       - name: Create native packages with jpackage
         run: |
-          # Split package types and create separate packages
           IFS=',' read -ra TYPES <<< "${{ matrix.package-types }}"
           for TYPE in "${TYPES[@]}"; do
             echo "Creating package type: $TYPE"
             jpackage \
-              --name GarbageCalendar \
+              --name "${{ matrix.app-name }}" \
               --input build/libs/ \
               --main-jar ${{ steps.find-jar.outputs.main-jar }} \
-              --main-class ${MAIN_CLASS} \
+              --main-class kienzle.calendar.Calendar \
               --type $TYPE \
               ${{ matrix.jpackage-opts }} \
               --dest build/jpackage/
           done
-        env:
-          MAIN_CLASS: kienzle.calendar.Calendar
 
       - name: List created packages
         run: ls -R build/jpackage/
@@ -99,9 +98,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: packages
-
-      - name: List downloaded files
-        run: find packages -type f -exec ls -lh {} \;
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
