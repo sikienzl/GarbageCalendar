@@ -16,6 +16,11 @@ dependencies {
     implementation 'org.apache.pdfbox:fontbox:2.0.29'
 }
 
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
 application {
     mainClass = 'kienzle.calendar.Calendar'
 }
