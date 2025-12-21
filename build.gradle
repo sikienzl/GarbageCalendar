@@ -1,12 +1,11 @@
 plugins {
     id 'java'
     id 'application'
+    id 'org.beryx.runtime' version '2.0.1'
 }
 
-group 'com.kienzle'
-version '1.0.0'
-
-sourceCompatibility = '11'
+group = 'com.kienzle'
+version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -21,28 +20,38 @@ application {
     mainClass = 'kienzle.calendar.Calendar'
 }
 
-task tagRelease {
-    doLast {
-        def tagName = "v${project.version}"  // Tag-Basename basierend auf der Version
-        def commitMessage = "Release version ${project.version}"
+runtime {
+    modules = ['java.base', 'java.desktop', 'java.logging']
 
-        // Git Tag erstellen
-        exec {
-            commandLine 'git', 'tag', '-a', tagName, '-m', commitMessage
-        }
-
-
-        exec {
-            commandLine 'git', 'push', 'origin', tagName
-        }
-
-        println "Tag $tagName wurde erstellt und zu GitHub gepusht!"
+    launcher {
+        jvmArgs = []
+        noConsole = false
     }
-}
 
-task buildAndTag {
-    dependsOn 'build', 'tagRelease'
-    doLast {
-        println "Build abgeschlossen und Tag erstellt!"
+    jpackage {
+        imageName = "GarbageCalendar"
+        installerName = "GarbageCalendar"
+        appVersion = project.version
+
+        outputDir = "jpackage"
+
+        // Linux / Windows / Mac settings MUST be passed as strings:
+        installerOptions = [
+                // Generic
+                "--vendor", "Kienzle",
+                "--description", "A Garbage Collection Calendar Generator",
+
+                // Linux specific
+                "--linux-package-name", "garbagecalendar",
+                "--linux-deb-maintainer", "Siegfried Kienzle <sikienzl.github@t-online.de>",
+                "--icon", "src/main/resources/icon.png",
+
+                // Windows
+                "--win-menu",
+                "--win-shortcut",
+
+                // Mac
+                "--mac-package-identifier", "com.kienzle.calendar"
+        ]
     }
 }

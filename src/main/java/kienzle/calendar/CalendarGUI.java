@@ -38,6 +38,7 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CalendarGUI extends JFrame {
 
@@ -277,8 +278,7 @@ public class CalendarGUI extends JFrame {
 
     private List<String> getReasonTypes() {
         return garbageCans.stream()
-            .map(gc -> gc.getType().toString())
-            .toList();
+            .map(gc -> gc.getType().toString()).collect(Collectors.toList());
     }
 
     private void markAsHoliday(int row, int year) {
